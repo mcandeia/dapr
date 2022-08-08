@@ -105,6 +105,7 @@ import (
 	// Bindings.
 	"github.com/dapr/components-contrib/bindings"
 	dingtalk_webhook "github.com/dapr/components-contrib/bindings/alicloud/dingtalk/webhook"
+	"github.com/dapr/components-contrib/bindings/jsonlogic"
 
 	"github.com/dapr/components-contrib/bindings/alicloud/dubbo"
 	"github.com/dapr/components-contrib/bindings/alicloud/oss"
@@ -412,6 +413,9 @@ func main() {
 			}),
 		),
 		runtime.WithOutputBindings(
+			bindings_loader.NewOutput("jsonlogic", func() bindings.OutputBinding {
+				return jsonlogic.NewJsonLogic(logContrib)
+			}),
 			bindings_loader.NewOutput("alicloud.dubbo", func() bindings.OutputBinding {
 				return dubbo.NewDubboOutput(logContrib)
 			}),

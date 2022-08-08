@@ -284,7 +284,6 @@ func (a *DaprRuntime) Run(opts ...Option) error {
 	for _, opt := range opts {
 		opt(&o)
 	}
-
 	err := a.initRuntime(&o)
 	if err != nil {
 		return err
