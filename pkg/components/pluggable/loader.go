@@ -24,7 +24,7 @@ func mapComponents(comps []componentsV1alpha1.PluggableComponent) []components.P
 	for idx, component := range comps {
 		pluggableComponents[idx] = components.Pluggable{
 			Name:    component.GetObjectMeta().GetName(),
-			Type:    components.Type(component.Spec.Type),
+			Type:    components.PluggableType(component.Spec.Type),
 			Version: component.Spec.Version,
 		}
 	}
