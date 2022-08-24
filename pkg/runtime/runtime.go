@@ -635,6 +635,21 @@ func (a *DaprRuntime) registerPluggableComponents() error {
 		return err
 	}
 	log.Infof("found %d pluggable components", len(pluggables))
+
+	mustRegister := a.buildPluggableRegisterFunc()
+
+	mustRegister(pluggables...)
+
+	return nil
+}
+
+// registerPluggableComponents loads and register the loaded pluggable components.
+func (a *DaprRuntime) registerPluggableComponents() error {
+	pluggables, err := a.loadPluggableComponents()
+	if err != nil {
+		return err
+	}
+	log.Infof("found %d pluggable components", len(pluggables))
 	log.Infof("%d pluggable components were registered", pluggable.Register(pluggables...))
 
 	return nil
