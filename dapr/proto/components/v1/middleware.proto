@@ -1,0 +1,104 @@
+/*
+Copyright 2021 The Dapr Authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package dapr.proto.components.v1;
+
+import "google/protobuf/empty.proto";
+import "dapr/proto/components/v1/common.proto";
+
+option go_package = "github.com/dapr/dapr/pkg/proto/components/v1;components";
+
+
+// HttpMiddleware service provides a gRPC interface http middlewares.
+service HttpMiddleware {
+    rpc Init(MetadataRequest) returns (google.protobuf.Empty) {}
+    rpc Handle(stream HandleRequest) returns (stream HandleResponse) {}
+    // Ping the state store. Used for liveness porpuses.
+    rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+message GetRequestHeadersCommandResponse {
+    string method = 1;
+    string uri = 2;
+    map<string, string> headers = 3;
+}
+
+message GetResponseHeadersCommandResponse {
+    map<string, string> headers = 3;
+}
+
+message GetRequestBodyCommandResponse {
+    bytes data = 1;
+}
+message GetResponseBodyCommandResponse {
+    bytes data = 1;
+}
+
+message SetRequestHeadersCommandResponse {}
+message SetRequestBodyCommandResponse {}
+message ExecNextCommandResponse {}
+message SetResponseStatusCodeCommandResponse {}
+
+message HandleRequest {
+    oneof response {
+        GetRequestHeadersCommandResponse get_req_headers = 1;
+        GetRequestBodyCommandResponse get_req_body = 2;
+        GetResponseHeadersCommandResponse get_resp_headers = 3;
+        SetRequestHeadersCommandResponse set_req_headers = 4;
+        SetRequestBodyCommandResponse set_req_body = 5;
+        SetResponseBodyCommand set_resp_body = 6;
+        SetResponseStatusCodeCommandResponse set_resp_status = 7;
+        GetResponseBodyCommandResponse get_resp_body = 8;
+        ExecNextCommandResponse exec_next = 9;
+    }
+}
+
+message GetRequestHeadersCommand {}
+message GetRequestBodyCommand {}
+message GetResponseHeadersCommand {}
+message GetResponseBodyCommand {}
+
+message SetRequestHeadersCommand {
+    string method = 1;
+    string uri = 2;
+    map<string, string> headers = 3;
+}
+
+message SetRequestBodyCommand {
+    bytes data = 1;
+}
+
+message SetResponseStatusCodeCommand {
+    int32 status_code = 1;
+}
+
+message SetResponseBodyCommand {
+    bytes data = 1;
+}
+
+message ExecNextCommand {}
+
+message HandleResponse {
+    oneof command {
+        GetRequestHeadersCommand get_req_headers = 1;
+        GetRequestBodyCommand get_req_body = 2;
+        GetResponseHeadersCommand get_resp_headers = 3;
+        SetRequestHeadersCommand set_req_headers = 4;
+        SetRequestBodyCommand set_req_body = 5;
+        SetResponseBodyCommand set_resp_body = 6;
+        SetResponseStatusCodeCommand set_resp_status = 7;
+        GetResponseBodyCommand get_resp_body = 8;
+        ExecNextCommand exec_next = 9;
+    }
+}
