@@ -23,7 +23,7 @@ option go_package = "github.com/dapr/dapr/pkg/proto/components/v1;components";
 // HttpMiddleware service provides a gRPC interface http middlewares.
 service HttpMiddleware {
     rpc Init(MetadataRequest) returns (google.protobuf.Empty) {}
-    rpc Handle(stream HandleRequest) returns (stream HandleResponse) {}
+    rpc Handle(stream CommandResponse) returns (stream Command) {}
     // Ping the state store. Used for liveness porpuses.
     rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
@@ -35,7 +35,8 @@ message GetRequestHeadersCommandResponse {
 }
 
 message GetResponseHeadersCommandResponse {
-    map<string, string> headers = 3;
+    map<string, string> headers = 1;
+    int32 status_code = 2;
 }
 
 message GetRequestBodyCommandResponse {
@@ -45,22 +46,12 @@ message GetResponseBodyCommandResponse {
     bytes data = 1;
 }
 
-message SetRequestHeadersCommandResponse {}
-message SetRequestBodyCommandResponse {}
-message ExecNextCommandResponse {}
-message SetResponseStatusCodeCommandResponse {}
-
-message HandleRequest {
+message CommandResponse {
     oneof response {
         GetRequestHeadersCommandResponse get_req_headers = 1;
         GetRequestBodyCommandResponse get_req_body = 2;
         GetResponseHeadersCommandResponse get_resp_headers = 3;
-        SetRequestHeadersCommandResponse set_req_headers = 4;
-        SetRequestBodyCommandResponse set_req_body = 5;
-        SetResponseBodyCommand set_resp_body = 6;
-        SetResponseStatusCodeCommandResponse set_resp_status = 7;
-        GetResponseBodyCommandResponse get_resp_body = 8;
-        ExecNextCommandResponse exec_next = 9;
+        GetResponseBodyCommandResponse get_resp_body = 4;
     }
 }
 
@@ -87,9 +78,13 @@ message SetResponseBodyCommand {
     bytes data = 1;
 }
 
+message SetResponseHeadersCommand {
+    map<string, string> headers = 1;
+}
+
 message ExecNextCommand {}
 
-message HandleResponse {
+message Command {
     oneof command {
         GetRequestHeadersCommand get_req_headers = 1;
         GetRequestBodyCommand get_req_body = 2;
@@ -99,6 +94,7 @@ message HandleResponse {
         SetResponseBodyCommand set_resp_body = 6;
         SetResponseStatusCodeCommand set_resp_status = 7;
         GetResponseBodyCommand get_resp_body = 8;
-        ExecNextCommand exec_next = 9;
+        SetResponseHeadersCommand set_resp_headers = 9;
+        ExecNextCommand exec_next = 10;
     }
 }

@@ -56,8 +56,8 @@ func (c *httpMiddlewareClient) Handle(ctx context.Context, opts ...grpc.CallOpti
 }
 
 type HttpMiddleware_HandleClient interface {
-	Send(*HandleRequest) error
-	Recv() (*HandleResponse, error)
+	Send(*CommandResponse) error
+	Recv() (*Command, error)
 	grpc.ClientStream
 }
 
@@ -65,12 +65,12 @@ type httpMiddlewareHandleClient struct {
 	grpc.ClientStream
 }
 
-func (x *httpMiddlewareHandleClient) Send(m *HandleRequest) error {
+func (x *httpMiddlewareHandleClient) Send(m *CommandResponse) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *httpMiddlewareHandleClient) Recv() (*HandleResponse, error) {
-	m := new(HandleResponse)
+func (x *httpMiddlewareHandleClient) Recv() (*Command, error) {
+	m := new(Command)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func _HttpMiddleware_Handle_Handler(srv interface{}, stream grpc.ServerStream) e
 }
 
 type HttpMiddleware_HandleServer interface {
-	Send(*HandleResponse) error
-	Recv() (*HandleRequest, error)
+	Send(*Command) error
+	Recv() (*CommandResponse, error)
 	grpc.ServerStream
 }
 
@@ -153,12 +153,12 @@ type httpMiddlewareHandleServer struct {
 	grpc.ServerStream
 }
 
-func (x *httpMiddlewareHandleServer) Send(m *HandleResponse) error {
+func (x *httpMiddlewareHandleServer) Send(m *Command) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *httpMiddlewareHandleServer) Recv() (*HandleRequest, error) {
-	m := new(HandleRequest)
+func (x *httpMiddlewareHandleServer) Recv() (*CommandResponse, error) {
+	m := new(CommandResponse)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}

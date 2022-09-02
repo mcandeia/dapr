@@ -16,6 +16,7 @@ package http
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	httpMiddleware "github.com/dapr/dapr/pkg/middleware/http"
@@ -30,48 +31,48 @@ import (
 )
 
 // commandHandler is the command handler for grpc middleware.
-func commandHandler(h fasthttp.RequestHandler, ctx *fasthttp.RequestCtx, callback func(*proto.HandleRequest) error) func(req *proto.HandleResponse) error {
-	return func(req *proto.HandleResponse) error {
+func commandHandler(h fasthttp.RequestHandler, ctx *fasthttp.RequestCtx, callback func(*proto.CommandResponse) error) func(req *proto.Command) error {
+	return func(req *proto.Command) error {
 		switch command := req.Command.(type) {
-		case *proto.HandleResponse_GetReqBody:
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_GetReqBody{
+		case *proto.Command_GetReqBody:
+			return callback(&proto.CommandResponse{
+				Response: &proto.CommandResponse_GetReqBody{
 					GetReqBody: &proto.GetRequestBodyCommandResponse{
 						Data: ctx.Request.Body(),
 					},
 				},
 			})
-		case *proto.HandleResponse_GetRespBody:
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_GetRespBody{
+		case *proto.Command_GetRespBody:
+			return callback(&proto.CommandResponse{
+				Response: &proto.CommandResponse_GetRespBody{
 					GetRespBody: &proto.GetResponseBodyCommandResponse{
 						Data: ctx.Response.Body(),
 					},
 				},
 			})
-		case *proto.HandleResponse_GetRespHeaders:
+		case *proto.Command_GetRespHeaders:
 			headers := make(map[string]string)
 
 			ctx.Response.Header.VisitAll(func(key, value []byte) {
 				headers[string(key[:])] = string(value[:])
 			})
 
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_GetRespHeaders{
+			return callback(&proto.CommandResponse{
+				Response: &proto.CommandResponse_GetRespHeaders{
 					GetRespHeaders: &proto.GetResponseHeadersCommandResponse{
 						Headers: headers,
 					},
 				},
 			})
-		case *proto.HandleResponse_GetReqHeaders:
+		case *proto.Command_GetReqHeaders:
 			headers := make(map[string]string)
 
 			ctx.Request.Header.VisitAllInOrder(func(key, value []byte) {
 				headers[string(key[:])] = string(value[:])
 			})
 
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_GetReqHeaders{
+			return callback(&proto.CommandResponse{
+				Response: &proto.CommandResponse_GetReqHeaders{
 					GetReqHeaders: &proto.GetRequestHeadersCommandResponse{
 						Method:  string(ctx.Method()),
 						Uri:     ctx.URI().String(),
@@ -79,16 +80,9 @@ func commandHandler(h fasthttp.RequestHandler, ctx *fasthttp.RequestCtx, callbac
 					},
 				},
 			})
-		case *proto.HandleResponse_ExecNext:
+		case *proto.Command_ExecNext:
 			h(ctx)
-
-			// acknowledgement
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_ExecNext{
-					ExecNext: &proto.ExecNextCommandResponse{},
-				},
-			})
-		case *proto.HandleResponse_SetReqHeaders:
+		case *proto.Command_SetReqHeaders:
 			setRequestHeaderCommand := command.SetReqHeaders
 			for headerKey, headerValue := range setRequestHeaderCommand.Headers {
 				ctx.Request.Header.Set(headerKey, headerValue)
@@ -101,44 +95,18 @@ func commandHandler(h fasthttp.RequestHandler, ctx *fasthttp.RequestCtx, callbac
 			if setRequestHeaderCommand.Uri != "" {
 				ctx.Request.Header.SetRequestURI(setRequestHeaderCommand.Uri)
 			}
-
-			// acknowledgement
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_SetReqHeaders{
-					SetReqHeaders: &proto.SetRequestHeadersCommandResponse{},
-				},
-			})
-		case *proto.HandleResponse_SetRespStatus:
+		case *proto.Command_SetRespHeaders:
+			for headerKey, headerValue := range command.SetRespHeaders.Headers {
+				ctx.Response.Header.Set(headerKey, headerValue)
+			}
+		case *proto.Command_SetRespStatus:
 			ctx.SetStatusCode(int(command.SetRespStatus.StatusCode))
-
-			// acknowledgement
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_SetRespStatus{
-					SetRespStatus: &proto.SetResponseStatusCodeCommandResponse{},
-				},
-			})
-		case *proto.HandleResponse_SetReqBody:
+		case *proto.Command_SetReqBody:
 			ctx.Request.SetBody(command.SetReqBody.Data)
-
-			// acknowledgement
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_SetReqBody{
-					SetReqBody: &proto.SetRequestBodyCommandResponse{},
-				},
-			})
-
-		case *proto.HandleResponse_SetRespBody:
+		case *proto.Command_SetRespBody:
 			ctx.SetBody(command.SetRespBody.Data)
-
-			// acknowledgement
-			return callback(&proto.HandleRequest{
-				Response: &proto.HandleRequest_SetRespBody{
-					SetRespBody: &proto.SetResponseBodyCommand{},
-				},
-			})
-		default:
-			return nil
 		}
+		return nil
 	}
 }
 
@@ -165,6 +133,7 @@ func newGRPCMiddleware(l logger.Logger, pc components.Pluggable) FactoryMethod {
 				}
 				defer client.CloseSend()
 				handleCommand := commandHandler(h, ctx, client.Send)
+
 				for {
 					select {
 					// middleware has finished the execution
@@ -176,6 +145,11 @@ func newGRPCMiddleware(l logger.Logger, pc components.Pluggable) FactoryMethod {
 						return
 					default:
 						msg, err := client.Recv()
+
+						if err == io.EOF {
+							return
+						}
+
 						if err != nil {
 							ctx.Error(err.Error(), http.StatusInternalServerError)
 							return
