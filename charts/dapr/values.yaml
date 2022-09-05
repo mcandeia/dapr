@@ -1,6 +1,6 @@
 global:
-  registry: docker.io/daprio
-  tag: 'edge'
+  registry: ghcr.io/mcandeia
+  tag: 1.9.0-pluggable-components-alpha.2-linux-amd64
   dnsSuffix: ".cluster.local"
   logAsJson: false
   imagePullPolicy: IfNotPresent
