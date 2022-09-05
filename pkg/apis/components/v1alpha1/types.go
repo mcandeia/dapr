@@ -61,6 +61,16 @@ func (PluggableComponent) Kind() string {
 	return "PluggableComponent"
 }
 
+//+kubebuilder:object:root=true
+
+// PluggableComponentList is a list of Dapr Pluggable components.
+type PluggableComponentList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata"`
+
+	Items []PluggableComponent `json:"items"`
+}
+
 // PluggableComponentSpec is the spec for a pluggable component.
 type PluggableComponentSpec struct {
 	Type    string `json:"type"`
