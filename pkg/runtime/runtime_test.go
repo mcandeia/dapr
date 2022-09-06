@@ -36,7 +36,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"go.uber.org/atomic"
 
 	"github.com/dapr/components-contrib/lock"
 	bindingsLoader "github.com/dapr/dapr/pkg/components/bindings"
@@ -1310,19 +1309,6 @@ func TestConsumerID(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-type fakeStateStoreRegistry struct {
-	stateLoader.Registry
-	registerCalled   atomic.Int64
-	onRegisterCalled func(...stateLoader.State)
-}
-
-func (f *fakeStateStoreRegistry) Register(components ...stateLoader.State) {
-	f.registerCalled.Add(1)
-	if f.onRegisterCalled != nil {
-		f.onRegisterCalled(components...)
-	}
-}
-
 func TestPluggableComponents(t *testing.T) {
 	t.Run("load pluggable components", func(t *testing.T) {
 		rts := NewTestDaprRuntime(modes.StandaloneMode)
@@ -1379,17 +1365,6 @@ func TestPluggableComponents(t *testing.T) {
 				Version: fakeVersion,
 			},
 		}
-			ObjectMeta: metaV1.ObjectMeta{
-				Name: fakeName,
-			},
-			TypeMeta: metaV1.TypeMeta{
-				Kind: "PluggableComponent",
-			},
-			Spec: componentsV1alpha1.PluggableComponentSpec{
-				Type:    fakeType,
-				Version: fakeVersion,
-			},
-		}
 
 		cleanup, err := writeComponentToDisk(s, "pluggable.yaml")
 		require.NoError(t, err)
@@ -1398,7 +1373,6 @@ func TestPluggableComponents(t *testing.T) {
 		rts.runtimeConfig.Standalone.ComponentsPath = componentsDir
 		err = rts.registerPluggableComponents()
 		require.NoError(t, err)
-		assert.Equal(t, int64(1), registry.registerCalled.Load())
 	})
 }
 
