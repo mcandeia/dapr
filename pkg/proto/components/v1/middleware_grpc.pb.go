@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,10 +22,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HttpMiddlewareClient interface {
-	Init(ctx context.Context, in *MetadataRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Init(ctx context.Context, in *MiddlewareInitRequest, opts ...grpc.CallOption) (*MiddlewareInitResponse, error)
 	Handle(ctx context.Context, opts ...grpc.CallOption) (HttpMiddleware_HandleClient, error)
 	// Ping the state store. Used for liveness porpuses.
-	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
 type httpMiddlewareClient struct {
@@ -37,8 +36,8 @@ func NewHttpMiddlewareClient(cc grpc.ClientConnInterface) HttpMiddlewareClient {
 	return &httpMiddlewareClient{cc}
 }
 
-func (c *httpMiddlewareClient) Init(ctx context.Context, in *MetadataRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *httpMiddlewareClient) Init(ctx context.Context, in *MiddlewareInitRequest, opts ...grpc.CallOption) (*MiddlewareInitResponse, error) {
+	out := new(MiddlewareInitResponse)
 	err := c.cc.Invoke(ctx, "/dapr.proto.components.v1.HttpMiddleware/Init", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -77,8 +76,8 @@ func (x *httpMiddlewareHandleClient) Recv() (*Command, error) {
 	return m, nil
 }
 
-func (c *httpMiddlewareClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *httpMiddlewareClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	out := new(PingResponse)
 	err := c.cc.Invoke(ctx, "/dapr.proto.components.v1.HttpMiddleware/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -90,23 +89,23 @@ func (c *httpMiddlewareClient) Ping(ctx context.Context, in *emptypb.Empty, opts
 // All implementations should embed UnimplementedHttpMiddlewareServer
 // for forward compatibility
 type HttpMiddlewareServer interface {
-	Init(context.Context, *MetadataRequest) (*emptypb.Empty, error)
+	Init(context.Context, *MiddlewareInitRequest) (*MiddlewareInitResponse, error)
 	Handle(HttpMiddleware_HandleServer) error
 	// Ping the state store. Used for liveness porpuses.
-	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
 }
 
 // UnimplementedHttpMiddlewareServer should be embedded to have forward compatible implementations.
 type UnimplementedHttpMiddlewareServer struct {
 }
 
-func (UnimplementedHttpMiddlewareServer) Init(context.Context, *MetadataRequest) (*emptypb.Empty, error) {
+func (UnimplementedHttpMiddlewareServer) Init(context.Context, *MiddlewareInitRequest) (*MiddlewareInitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Init not implemented")
 }
 func (UnimplementedHttpMiddlewareServer) Handle(HttpMiddleware_HandleServer) error {
 	return status.Errorf(codes.Unimplemented, "method Handle not implemented")
 }
-func (UnimplementedHttpMiddlewareServer) Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+func (UnimplementedHttpMiddlewareServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 
@@ -122,7 +121,7 @@ func RegisterHttpMiddlewareServer(s grpc.ServiceRegistrar, srv HttpMiddlewareSer
 }
 
 func _HttpMiddleware_Init_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MetadataRequest)
+	in := new(MiddlewareInitRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -134,7 +133,7 @@ func _HttpMiddleware_Init_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/dapr.proto.components.v1.HttpMiddleware/Init",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HttpMiddlewareServer).Init(ctx, req.(*MetadataRequest))
+		return srv.(HttpMiddlewareServer).Init(ctx, req.(*MiddlewareInitRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -166,7 +165,7 @@ func (x *httpMiddlewareHandleServer) Recv() (*CommandResponse, error) {
 }
 
 func _HttpMiddleware_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(PingRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -178,7 +177,7 @@ func _HttpMiddleware_Ping_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/dapr.proto.components.v1.HttpMiddleware/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HttpMiddlewareServer).Ping(ctx, req.(*emptypb.Empty))
+		return srv.(HttpMiddlewareServer).Ping(ctx, req.(*PingRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

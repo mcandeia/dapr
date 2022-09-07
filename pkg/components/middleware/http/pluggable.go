@@ -118,8 +118,10 @@ func newGRPCMiddleware(l logger.Logger, pc components.Pluggable) FactoryMethod {
 			return nil, err
 		}
 
-		if _, err := connector.Client.Init(connector.Context, &proto.MetadataRequest{
-			Properties: metadata.Properties,
+		if _, err := connector.Client.Init(connector.Context, &proto.MiddlewareInitRequest{
+			Metadata: &proto.MetadataRequest{
+				Properties: metadata.Properties,
+			},
 		}); err != nil {
 			return nil, err
 		}
@@ -144,7 +146,7 @@ func newGRPCMiddleware(l logger.Logger, pc components.Pluggable) FactoryMethod {
 						ctx.Error(fmt.Sprintf("timed out waiting for middleware '%s'", metadata.Name), http.StatusInternalServerError)
 						return
 					default:
-						msg, err := client.Recv()
+						cmd, err := client.Recv()
 
 						if err == io.EOF {
 							return
@@ -155,7 +157,7 @@ func newGRPCMiddleware(l logger.Logger, pc components.Pluggable) FactoryMethod {
 							return
 						}
 
-						if err := handleCommand(msg); err != nil {
+						if err := handleCommand(cmd); err != nil {
 							ctx.Error(err.Error(), http.StatusInternalServerError)
 							return
 						}

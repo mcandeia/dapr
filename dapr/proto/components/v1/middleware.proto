@@ -14,7 +14,6 @@ syntax = "proto3";
 
 package dapr.proto.components.v1;
 
-import "google/protobuf/empty.proto";
 import "dapr/proto/components/v1/common.proto";
 
 option go_package = "github.com/dapr/dapr/pkg/proto/components/v1;components";
@@ -22,11 +21,18 @@ option go_package = "github.com/dapr/dapr/pkg/proto/components/v1;components";
 
 // HttpMiddleware service provides a gRPC interface http middlewares.
 service HttpMiddleware {
-    rpc Init(MetadataRequest) returns (google.protobuf.Empty) {}
+    rpc Init(MiddlewareInitRequest) returns (MiddlewareInitResponse) {}
     rpc Handle(stream CommandResponse) returns (stream Command) {}
     // Ping the state store. Used for liveness porpuses.
-    rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+    rpc Ping(PingRequest) returns (PingResponse) {}
 }
+
+message MiddlewareInitRequest {
+    MetadataRequest metadata = 1;
+}
+// reserved for future-proof extensibility
+message MiddlewareInitResponse {}
+
 
 message GetRequestHeadersCommandResponse {
     string method = 1;
