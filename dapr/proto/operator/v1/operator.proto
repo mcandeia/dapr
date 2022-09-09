@@ -38,10 +38,10 @@ service Operator {
   rpc ListSubscriptionsV2 (ListSubscriptionsRequest) returns (ListSubscriptionsResponse) {}
 }
 
-// ListPluggableComponentsRequest is the request to get pluggable components for a sidecar in namespace.
+// ListPluggableComponentsRequest is the request to get pluggable components available.
 message ListPluggableComponentsRequest {
   string namespace = 1;
-  string podName = 2;
+  string pod_name = 2;
 }
 
 // ListPluggableComponentsResponse includes the list of available pluggable components.

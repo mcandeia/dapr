@@ -45,15 +45,14 @@ func (Component) Kind() string {
 //+genclient
 //+genclient:noStatus
 //+kubebuilder:object:root=true
+//+kubebuilder:resource:scope=Cluster
 
 // PluggableComponent is a especification for a pluggable component.
 type PluggableComponent struct {
 	metav1.TypeMeta `json:",inline"`
 	//+optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	//+optional
-	Scopes []string               `json:"scopes,omitempty"`
-	Spec   PluggableComponentSpec `json:"spec,omitempty"`
+	Spec              PluggableComponentSpec `json:"spec,omitempty"`
 }
 
 // Kind returns the component kind.

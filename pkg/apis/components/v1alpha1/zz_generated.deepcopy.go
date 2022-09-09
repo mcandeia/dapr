@@ -164,11 +164,6 @@ func (in *PluggableComponent) DeepCopyInto(out *PluggableComponent) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	if in.Scopes != nil {
-		in, out := &in.Scopes, &out.Scopes
-		*out = make([]string, len(*in))
-		copy(*out, *in)
-	}
 	out.Spec = in.Spec
 }
 
