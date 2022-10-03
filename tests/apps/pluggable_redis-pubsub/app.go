@@ -52,7 +52,7 @@ var log = logger.NewLogger("redis-pubsub-pluggable")
 
 func main() {
 	dapr.Register("redis-pluggable", dapr.WithPubSub(func() sdkPubSub.PubSub {
-		return redis.NewRedisStreams(log)
+		return &redisPb{redis.NewRedisStreams(log)}
 	}))
 	dapr.MustRun()
 }
