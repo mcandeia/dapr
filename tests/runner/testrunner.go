@@ -83,14 +83,23 @@ func NewTestRunner(id string, apps []kube.AppDescription,
 	comps []kube.ComponentDescription,
 	initApps []kube.AppDescription,
 ) *TestRunner {
-	if utils.TestTargetOS() != "windows" { // pluggable components feature requires unix socket to work
+	if false && utils.TestTargetOS() != "windows" { // pluggable components feature requires unix socket to work
+		newApps := make([]kube.AppDescription, len(apps))
 		componentMesh := corev1.Container{
 			Name:  "component-mesh",
 			Image: BuildTestImageName("e2e-pluggable_mesh"),
 		}
 
-		for _, app := range apps {
+		for idx, app := range apps {
 			app.PluggableComponents = append(app.PluggableComponents, componentMesh)
+			newApps[idx] = app
+		}
+		return &TestRunner{
+			id:         id,
+			components: comps,
+			initApps:   initApps,
+			testApps:   newApps,
+			Platform:   NewKubeTestPlatform(),
 		}
 	}
 	return &TestRunner{

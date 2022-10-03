@@ -7,7 +7,7 @@ replace github.com/dapr/dapr => ../../../
 replace github.com/eclipse/paho.mqtt.golang => github.com/shivamkm07/paho.mqtt.golang v1.3.6-0.20220106130409-e28a1db639f8
 
 require (
-	github.com/dapr-sandbox/components-go-sdk v0.0.0-20221003123222-b1e4882f892e
+	github.com/dapr-sandbox/components-go-sdk v0.0.0-20221003154616-03fe8145efe7
 	github.com/dapr/components-contrib v1.9.0-rc.1
 	github.com/dapr/kit v0.0.3-0.20220930182601-272e358ba6a7
 )
