@@ -21,6 +21,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	configurationv1alpha1 "github.com/dapr/dapr/pkg/apis/configuration/v1alpha1"
+
+	"github.com/dapr/dapr/tests/e2e/utils"
 	kube "github.com/dapr/dapr/tests/platforms/kubernetes"
 )
 
@@ -81,6 +83,27 @@ func NewTestRunner(id string, apps []kube.AppDescription,
 	comps []kube.ComponentDescription,
 	initApps []kube.AppDescription,
 ) *TestRunner {
+	if id != "injectorapp" && utils.TestTargetOS() != "windows" { // pluggable components feature requires unix socket to work
+		newApps := make([]kube.AppDescription, len(apps))
+		componentMesh := corev1.Container{
+			Name:  "component-mesh",
+			Image: BuildTestImageName("e2e-pluggable_mesh"),
+		}
+
+		for idx, app := range apps {
+			if app.DaprEnabled && !app.IsJob {
+				app.PluggableComponents = append(app.PluggableComponents, componentMesh)
+			}
+			newApps[idx] = app
+		}
+		return &TestRunner{
+			id:         id,
+			components: comps,
+			initApps:   initApps,
+			testApps:   newApps,
+			Platform:   NewKubeTestPlatform(),
+		}
+	}
 	return &TestRunner{
 		id:         id,
 		components: comps,
