@@ -91,7 +91,9 @@ func NewTestRunner(id string, apps []kube.AppDescription,
 		}
 
 		for idx, app := range apps {
-			app.PluggableComponents = append(app.PluggableComponents, componentMesh)
+			if app.DaprEnabled && !app.IsJob {
+				app.PluggableComponents = append(app.PluggableComponents, componentMesh)
+			}
 			newApps[idx] = app
 		}
 		return &TestRunner{
