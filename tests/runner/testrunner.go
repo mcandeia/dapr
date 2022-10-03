@@ -83,7 +83,7 @@ func NewTestRunner(id string, apps []kube.AppDescription,
 	comps []kube.ComponentDescription,
 	initApps []kube.AppDescription,
 ) *TestRunner {
-	if utils.TestTargetOS() != "windows" { // pluggable components feature requires unix socket to work
+	if id != "injectorapp" && utils.TestTargetOS() != "windows" { // pluggable components feature requires unix socket to work
 		newApps := make([]kube.AppDescription, len(apps))
 		componentMesh := corev1.Container{
 			Name:  "component-mesh",
