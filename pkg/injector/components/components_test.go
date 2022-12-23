@@ -18,7 +18,7 @@ import (
 
 	componentsapi "github.com/dapr/dapr/pkg/apis/components/v1alpha1"
 	"github.com/dapr/dapr/pkg/injector/annotations"
-	"github.com/dapr/dapr/pkg/injector/sidecar"
+	"github.com/dapr/dapr/pkg/injector/patcher"
 
 	"github.com/stretchr/testify/assert"
 
@@ -37,7 +37,7 @@ func TestComponentsPatch(t *testing.T) {
 		appID          string
 		componentsList []componentsapi.Component
 		pod            *corev1.Pod
-		expPatch       []sidecar.PatchOperation
+		expPatch       []patcher.PatchOperation
 		expMount       *corev1.VolumeMount
 	}{
 		{
@@ -52,7 +52,7 @@ func TestComponentsPatch(t *testing.T) {
 					Containers: []corev1.Container{appContainer},
 				},
 			},
-			[]sidecar.PatchOperation{},
+			[]patcher.PatchOperation{},
 			nil,
 		},
 		{
@@ -71,10 +71,10 @@ func TestComponentsPatch(t *testing.T) {
 					}},
 				},
 			},
-			[]sidecar.PatchOperation{
+			[]patcher.PatchOperation{
 				{
 					Op:    "add",
-					Path:  sidecar.PatchPathVolumes,
+					Path:  patcher.PatchPathVolumes,
 					Value: []corev1.Volume{sharedComponentsSocketVolume()},
 				},
 				{
@@ -111,10 +111,10 @@ func TestComponentsPatch(t *testing.T) {
 					}},
 				},
 			},
-			[]sidecar.PatchOperation{
+			[]patcher.PatchOperation{
 				{
 					Op:    "add",
-					Path:  sidecar.PatchPathVolumes,
+					Path:  patcher.PatchPathVolumes,
 					Value: []corev1.Volume{sharedComponentsSocketVolume()},
 				},
 				{
@@ -160,10 +160,10 @@ func TestComponentsPatch(t *testing.T) {
 					}},
 				},
 			},
-			[]sidecar.PatchOperation{
+			[]patcher.PatchOperation{
 				{
 					Op:    "add",
-					Path:  sidecar.PatchPathVolumes,
+					Path:  patcher.PatchPathVolumes,
 					Value: []corev1.Volume{sharedComponentsSocketVolume()},
 				},
 				{
@@ -181,7 +181,7 @@ func TestComponentsPatch(t *testing.T) {
 				},
 				{
 					Op:   "add",
-					Path: sidecar.PatchPathVolumes + "/-",
+					Path: patcher.PatchPathVolumes + "/-",
 					Value: corev1.Volume{
 						Name: "readonly",
 						VolumeSource: corev1.VolumeSource{
@@ -191,7 +191,7 @@ func TestComponentsPatch(t *testing.T) {
 				},
 				{
 					Op:   "add",
-					Path: sidecar.PatchPathVolumes + "/-",
+					Path: patcher.PatchPathVolumes + "/-",
 					Value: corev1.Volume{
 						Name: "readwrite",
 						VolumeSource: corev1.VolumeSource{
@@ -250,10 +250,10 @@ func TestComponentsPatch(t *testing.T) {
 					}},
 				},
 			},
-			[]sidecar.PatchOperation{
+			[]patcher.PatchOperation{
 				{
 					Op:    "add",
-					Path:  sidecar.PatchPathVolumes + "/-",
+					Path:  patcher.PatchPathVolumes + "/-",
 					Value: sharedComponentsSocketVolume(),
 				},
 				{

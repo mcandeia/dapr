@@ -23,14 +23,13 @@ import (
 	"github.com/dapr/dapr/pkg/apis/components/v1alpha1"
 	"github.com/dapr/dapr/pkg/injector/annotations"
 	"github.com/dapr/dapr/pkg/injector/components"
-	"github.com/dapr/dapr/pkg/injector/sidecar"
 )
 
 // namespaceFlight deduplicates requests for the same namespace
 var namespaceFlight singleflight.Group
 
 func (i *injector) splitContainers(pod corev1.Pod) (appContainers map[int]corev1.Container, componentContainers map[int]corev1.Container, injectedComponentContainers []corev1.Container, err error) {
-	an := sidecar.Annotations(pod.Annotations)
+	an := annotations.New(pod.Annotations)
 	injectionEnabled := an.GetBoolOrDefault(annotations.KeyPluggableComponentsInjection, false)
 	if injectionEnabled {
 		// FIXME there could be a inconsistency between components being fetched from the operator in runtime and this.

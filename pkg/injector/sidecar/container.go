@@ -20,11 +20,11 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/dapr/dapr/pkg/components/pluggable"
 	"github.com/dapr/dapr/pkg/injector/annotations"
+	"github.com/dapr/dapr/pkg/injector/patcher"
 	authConsts "github.com/dapr/dapr/pkg/runtime/security/consts"
 	sentryConsts "github.com/dapr/dapr/pkg/sentry/consts"
 	"github.com/dapr/dapr/utils"
@@ -35,7 +35,7 @@ import (
 // ContainerConfig contains the configuration for the sidecar container.
 type ContainerConfig struct {
 	AppID                        string
-	Annotations                  Annotations
+	Annotations                  annotations.Map
 	CertChain                    string
 	CertKey                      string
 	ControlPlaneAddress          string
@@ -390,55 +390,10 @@ func podContainsTolerations(ts []corev1.Toleration, podTolerations []corev1.Tole
 	return false
 }
 
-func getResourceRequirements(an Annotations) (*corev1.ResourceRequirements, error) {
-	r := corev1.ResourceRequirements{
-		Limits:   corev1.ResourceList{},
-		Requests: corev1.ResourceList{},
-	}
-	cpuLimit, ok := an[annotations.KeyCPULimit]
-	if ok {
-		list, err := appendQuantityToResourceList(cpuLimit, corev1.ResourceCPU, r.Limits)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing sidecar cpu limit: %w", err)
-		}
-		r.Limits = *list
-	}
-	memLimit, ok := an[annotations.KeyMemoryLimit]
-	if ok {
-		list, err := appendQuantityToResourceList(memLimit, corev1.ResourceMemory, r.Limits)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing sidecar memory limit: %w", err)
-		}
-		r.Limits = *list
-	}
-	cpuRequest, ok := an[annotations.KeyCPURequest]
-	if ok {
-		list, err := appendQuantityToResourceList(cpuRequest, corev1.ResourceCPU, r.Requests)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing sidecar cpu request: %w", err)
-		}
-		r.Requests = *list
-	}
-	memRequest, ok := an[annotations.KeyMemoryRequest]
-	if ok {
-		list, err := appendQuantityToResourceList(memRequest, corev1.ResourceMemory, r.Requests)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing sidecar memory request: %w", err)
-		}
-		r.Requests = *list
-	}
-
-	if len(r.Limits) > 0 || len(r.Requests) > 0 {
-		return &r, nil
-	}
-	return nil, nil
-}
-
-func appendQuantityToResourceList(quantity string, resourceName corev1.ResourceName, resourceList corev1.ResourceList) (*corev1.ResourceList, error) {
-	q, err := resource.ParseQuantity(quantity)
-	if err != nil {
-		return nil, err
-	}
-	resourceList[resourceName] = q
-	return &resourceList, nil
-}
+var getResourceRequirements = patcher.GetResourceRequirementsFunc(
+	"sidecar",
+	annotations.KeyCPULimit,
+	annotations.KeyMemoryLimit,
+	annotations.KeyCPURequest,
+	annotations.KeyMemoryRequest,
+)

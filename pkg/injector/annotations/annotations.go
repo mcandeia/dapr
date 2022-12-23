@@ -69,6 +69,10 @@ const (
 	KeyPluggableComponentContainerVolumeMountsReadOnly  = "dapr.io/component-container-volume-mounts"
 	KeyPluggableComponentContainerVolumeMountsReadWrite = "dapr.io/component-container-volume-mounts-rw"
 	KeyPluggableComponentContainerEnvironment           = "dapr.io/component-container-env"
+	KeyPluggableComponentContainerCPULimit              = "dapr.io/component-container-cpu-limit"
+	KeyPluggableComponentContainerMemoryLimit           = "dapr.io/component-container-memory-limit"
+	KeyPluggableComponentContainerCPURequest            = "dapr.io/component-container-cpu-request"
+	KeyPluggableComponentContainerMemoryRequest         = "dapr.io/component-container-memory-request"
 )
 
 // Default values

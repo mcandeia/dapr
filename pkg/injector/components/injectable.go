@@ -17,9 +17,12 @@ import (
 	componentsapi "github.com/dapr/dapr/pkg/apis/components/v1alpha1"
 	"github.com/dapr/dapr/pkg/injector/annotations"
 	"github.com/dapr/dapr/pkg/injector/sidecar"
+	"github.com/dapr/kit/logger"
 
 	corev1 "k8s.io/api/core/v1"
 )
+
+var log = logger.NewLogger("dapr.injector.components")
 
 // buildComponentContainers returns the component containers for the given app ID.
 func Injectable(appID string, components []componentsapi.Component) []corev1.Container {
@@ -44,12 +47,21 @@ func Injectable(appID string, components []componentsapi.Component) []corev1.Con
 			readonlyMounts := sidecar.ParseVolumeMountsString(component.Annotations[annotations.KeyPluggableComponentContainerVolumeMountsReadOnly], true)
 			rwMounts := sidecar.ParseVolumeMountsString(component.Annotations[annotations.KeyPluggableComponentContainerVolumeMountsReadWrite], false)
 			componentImages[containerImage] = true
-			componentContainers = append(componentContainers, corev1.Container{
+			container := corev1.Container{
 				Name:         component.Name,
 				Image:        containerImage,
 				Env:          sidecar.ParseEnvString(component.Annotations[annotations.KeyPluggableComponentContainerEnvironment]),
 				VolumeMounts: append(readonlyMounts, rwMounts...),
-			})
+			}
+			resources, err := getResourceRequirements(component.Annotations)
+			if err != nil {
+				log.Warnf("couldn't set %s resource requirements: %s. using defaults", component.Name, err)
+			}
+			if resources != nil {
+				container.Resources = *resources
+			}
+
+			componentContainers = append(componentContainers, container)
 		}
 	}
 
