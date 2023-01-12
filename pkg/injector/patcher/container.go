@@ -18,7 +18,6 @@ import (
 
 	"github.com/dapr/dapr/pkg/injector/annotations"
 
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -128,7 +127,7 @@ func getResourceRequirements(an annotations.Map, targetContainer, keyCPULimit, k
 	if ok {
 		list, err := appendQuantityToResourceList(cpuLimit, corev1.ResourceCPU, r.Limits)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error parsing %s cpu limit", targetContainer)
+			return nil, fmt.Errorf("error parsing %s cpu limit: %w", targetContainer, err)
 		}
 		r.Limits = *list
 	}
@@ -136,7 +135,7 @@ func getResourceRequirements(an annotations.Map, targetContainer, keyCPULimit, k
 	if ok {
 		list, err := appendQuantityToResourceList(memLimit, corev1.ResourceMemory, r.Limits)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error parsing %s memory limit", targetContainer)
+			return nil, fmt.Errorf("error parsing %s memory limit: %w", targetContainer, err)
 		}
 		r.Limits = *list
 	}
@@ -144,7 +143,7 @@ func getResourceRequirements(an annotations.Map, targetContainer, keyCPULimit, k
 	if ok {
 		list, err := appendQuantityToResourceList(cpuRequest, corev1.ResourceCPU, r.Requests)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error parsing %s cpu request", targetContainer)
+			return nil, fmt.Errorf("error parsing %s cpu request: %w", targetContainer, err)
 		}
 		r.Requests = *list
 	}
@@ -152,7 +151,7 @@ func getResourceRequirements(an annotations.Map, targetContainer, keyCPULimit, k
 	if ok {
 		list, err := appendQuantityToResourceList(memRequest, corev1.ResourceMemory, r.Requests)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error parsing %s memory request", targetContainer)
+			return nil, fmt.Errorf("error parsing %s memory request: %w", targetContainer, err)
 		}
 		r.Requests = *list
 	}
