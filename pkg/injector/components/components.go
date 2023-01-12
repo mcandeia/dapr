@@ -163,11 +163,3 @@ func addSharedSocketVolume(mountPath string, pod *corev1.Pod) (patcher.PatchOper
 	pod.Spec.Volumes = append(pod.Spec.Volumes, sharedSocketVolume)
 	return volumePatch, sharedSocketVolumeMount
 }
-
-var getResourceRequirements = patcher.GetResourceRequirementsFunc(
-	"component container",
-	annotations.KeyPluggableComponentContainerCPULimit,
-	annotations.KeyPluggableComponentContainerMemoryLimit,
-	annotations.KeyPluggableComponentContainerCPURequest,
-	annotations.KeyPluggableComponentContainerMemoryRequest,
-)

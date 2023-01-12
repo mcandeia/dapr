@@ -16,10 +16,7 @@ package patcher
 import (
 	"fmt"
 
-	"github.com/dapr/dapr/pkg/injector/annotations"
-
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // GetEnvPatchOperations adds new environment variables only if they do not exist.
@@ -108,66 +105,4 @@ func GetVolumeMountPatchOperations(volumeMounts []corev1.VolumeMount, addMounts 
 	}
 
 	return patchOps[:n]
-}
-
-// GetResourceRequirementsFunc returns a function that receives an annotation map and returns the resource limits based on the provided annotations.
-func GetResourceRequirementsFunc(targetContainer, keyCPULimit, keyMemoryLimit, keyCPURequest, keyMemoryRequest string) func(an annotations.Map) (*corev1.ResourceRequirements, error) {
-	return func(an annotations.Map) (*corev1.ResourceRequirements, error) {
-		return getResourceRequirements(an, targetContainer, keyCPULimit, keyMemoryLimit, keyCPURequest, keyMemoryRequest)
-	}
-}
-
-// getResourceRequirements get the container resource requirements based on annotated cpu and memory limits/requests.
-func getResourceRequirements(an annotations.Map, targetContainer, keyCPULimit, keyMemoryLimit, keyCPURequest, keyMemoryRequest string) (*corev1.ResourceRequirements, error) {
-	r := corev1.ResourceRequirements{
-		Limits:   corev1.ResourceList{},
-		Requests: corev1.ResourceList{},
-	}
-	cpuLimit, ok := an[keyCPULimit]
-	if ok {
-		list, err := appendQuantityToResourceList(cpuLimit, corev1.ResourceCPU, r.Limits)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing %s cpu limit: %w", targetContainer, err)
-		}
-		r.Limits = *list
-	}
-	memLimit, ok := an[keyMemoryLimit]
-	if ok {
-		list, err := appendQuantityToResourceList(memLimit, corev1.ResourceMemory, r.Limits)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing %s memory limit: %w", targetContainer, err)
-		}
-		r.Limits = *list
-	}
-	cpuRequest, ok := an[keyCPURequest]
-	if ok {
-		list, err := appendQuantityToResourceList(cpuRequest, corev1.ResourceCPU, r.Requests)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing %s cpu request: %w", targetContainer, err)
-		}
-		r.Requests = *list
-	}
-	memRequest, ok := an[keyMemoryRequest]
-	if ok {
-		list, err := appendQuantityToResourceList(memRequest, corev1.ResourceMemory, r.Requests)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing %s memory request: %w", targetContainer, err)
-		}
-		r.Requests = *list
-	}
-
-	if len(r.Limits) > 0 || len(r.Requests) > 0 {
-		return &r, nil
-	}
-	return nil, nil
-}
-
-// appendQuantityToResourceList append the given quantity to the current container resource list.
-func appendQuantityToResourceList(quantity string, resourceName corev1.ResourceName, resourceList corev1.ResourceList) (*corev1.ResourceList, error) {
-	q, err := resource.ParseQuantity(quantity)
-	if err != nil {
-		return nil, err
-	}
-	resourceList[resourceName] = q
-	return &resourceList, nil
 }

@@ -15,8 +15,6 @@ package components
 
 import (
 	componentsapi "github.com/dapr/dapr/pkg/apis/components/v1alpha1"
-	"github.com/dapr/dapr/pkg/injector/annotations"
-	"github.com/dapr/dapr/pkg/injector/sidecar"
 	"github.com/dapr/kit/logger"
 
 	corev1 "k8s.io/api/core/v1"
@@ -24,46 +22,9 @@ import (
 
 var log = logger.NewLogger("dapr.injector.components")
 
-// buildComponentContainers returns the component containers for the given app ID.
+// Injectable returns the component containers for the given app ID.
+// TODO Implement injectable pluggable components using Pluggable Component CRD.
 func Injectable(appID string, components []componentsapi.Component) []corev1.Container {
 	componentContainers := make([]corev1.Container, 0)
-	componentImages := make(map[string]bool, 0)
-
-	for _, component := range components {
-		containerImage := component.Annotations[annotations.KeyPluggableComponentContainerImage]
-		if containerImage == "" || componentImages[containerImage] {
-			continue
-		}
-
-		appScopped := len(component.Scopes) == 0
-		for _, scoppedApp := range component.Scopes {
-			if scoppedApp == appID {
-				appScopped = true
-				break
-			}
-		}
-
-		if appScopped {
-			readonlyMounts := sidecar.ParseVolumeMountsString(component.Annotations[annotations.KeyPluggableComponentContainerVolumeMountsReadOnly], true)
-			rwMounts := sidecar.ParseVolumeMountsString(component.Annotations[annotations.KeyPluggableComponentContainerVolumeMountsReadWrite], false)
-			componentImages[containerImage] = true
-			container := corev1.Container{
-				Name:         component.Name,
-				Image:        containerImage,
-				Env:          sidecar.ParseEnvString(component.Annotations[annotations.KeyPluggableComponentContainerEnvironment]),
-				VolumeMounts: append(readonlyMounts, rwMounts...),
-			}
-			resources, err := getResourceRequirements(component.Annotations)
-			if err != nil {
-				log.Warnf("couldn't set %s resource requirements: %s. using defaults", component.Name, err)
-			}
-			if resources != nil {
-				container.Resources = *resources
-			}
-
-			componentContainers = append(componentContainers, container)
-		}
-	}
-
 	return componentContainers
 }
