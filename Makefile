@@ -145,9 +145,11 @@ endif
 
 ifeq ($(origin DEBUG), undefined)
   BUILDTYPE_DIR:=release
+  GCFLAGS:=-gcflags="-dwarflocationlists=true"
   LDFLAGS:="$(DEFAULT_LDFLAGS) -s -w"
 else ifeq ($(DEBUG),0)
   BUILDTYPE_DIR:=release
+  GCFLAGS:=-gcflags="-dwarflocationlists=true"
   LDFLAGS:="$(DEFAULT_LDFLAGS) -s -w"
 else
   BUILDTYPE_DIR:=debug
